@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanity.Client", "src\Sanity.Client\Sanity.Client.csproj", "{FE36815A-9B9B-47B8-8F63-956B5A9F69DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanity.Client.Tests", "test\Sanity.Client.Tests\Sanity.Client.Tests.csproj", "{AD691510-FD88-4E26-9DF7-ECD5645BE5BA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE36815A-9B9B-47B8-8F63-956B5A9F69DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE36815A-9B9B-47B8-8F63-956B5A9F69DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE36815A-9B9B-47B8-8F63-956B5A9F69DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE36815A-9B9B-47B8-8F63-956B5A9F69DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD691510-FD88-4E26-9DF7-ECD5645BE5BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD691510-FD88-4E26-9DF7-ECD5645BE5BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD691510-FD88-4E26-9DF7-ECD5645BE5BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD691510-FD88-4E26-9DF7-ECD5645BE5BA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
