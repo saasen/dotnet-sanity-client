@@ -112,37 +112,6 @@ namespace Sanity.Client.Tests
 
                 await Assert.ThrowsAsync<HttpRequestException>(async () => await client.Query<Article[]>("*[_type == 'article']"));
             }
-
-            //public async Task SimpleQuery()
-            //{
-            //    var client = new SanityClient.SanityClient(new System.Net.Http.HttpClient());
-            //    var articles = await client.Query<Article>("*[_type == 'article']");
-            //}
-
-            //public async Task SimpleHttpResponseQuery()
-            //{
-            //    var client = new SanityClient.SanityClient(new System.Net.Http.HttpClient());
-            //    var httpResponse = await client.Query("*[_type == 'article']");
-
-            //    if (httpResponse.IsSuccessStatusCode())
-            //    {
-            //        // do something
-            //    }
-            //}
-
-            //public async Task SimpleListener()
-            //{
-            //    var client = new SanityClient.SanityClient(new System.Net.Http.HttpClient());
-            //    var listener = await client.Listen<T>("*[_type == 'article']");
-            //    listener.OnEvent += HandleArticleListenerMessage;
-            //    listener.OnError += HandleArticleListenerMessage;
-            //    listener.Unsubscribe();
-            //}
-
-            //private Task HandleArticleListenerMessage<T>(ListenerEventArgs args)
-            //{
-
-            //}
         }
         
         public class HttpResponseQuery
