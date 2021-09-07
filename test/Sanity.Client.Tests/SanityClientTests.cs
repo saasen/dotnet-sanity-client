@@ -294,7 +294,7 @@ namespace Sanity.Client.Tests
             {
                 var mockHttp = new MockHttpMessageHandler();
                 mockHttp
-                    .When($"https://123456.api.sanity.io/v2021-03-25/data/query/production?query={Uri.EscapeDataString("*[_type == 'article']")}")
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/doc/production/1234")
                     .Respond(httpStatusCode);
 
                 var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
@@ -304,7 +304,82 @@ namespace Sanity.Client.Tests
                     ApiVersion = "v2021-03-25"
                 });
 
-                var response = await client.Query("*[_type == 'article']");
+                var response = await client.GetDocument("1234");
+
+                response.Should().NotBeNull();
+            }
+        }
+
+        public class HttpResponseGetDocuments
+        {
+            [Fact]
+            public async Task HappyPath()
+            {
+                var mockHttp = new MockHttpMessageHandler();
+                mockHttp
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/doc/production/1234,5678")
+                    .Respond("application/json", @"
+                    {
+                      ""documents"": [
+                            {""_id"": ""1234"", ""_type"" : ""article"", ""title"": ""title1""},
+                            {""_id"": ""5678"", ""_type"" : ""blogPost"", ""excerpt"": ""excerpt1""}
+                        ]
+                    }");
+
+                var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
+                {
+                    ProjectId = "123456",
+                    Dataset = "production",
+                    ApiVersion = "v2021-03-25"
+                });
+
+                var response = await client.GetDocuments(new[] { "1234", "5678" });
+                response.EnsureSuccessStatusCode();
+                var result = await JsonSerializer.DeserializeAsync<SanityDocResponse<object>>(await response.Content.ReadAsStreamAsync(), new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                result.Should().NotBeNull();
+                result.Documents.Should().HaveCount(2);
+
+                //var article = result.Documents[0] as Article;
+                var article = JsonSerializer.Deserialize<Article>(result.Documents[0].ToString(), new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                article.Id.Should().Be("1234");
+                article.Type.Should().Be("article");
+                article.Title.Should().Be("title1");
+
+                var blogPost = JsonSerializer.Deserialize<BlogPost>(result.Documents[1].ToString(), new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                blogPost.Id.Should().Be("5678");
+                blogPost.Type.Should().Be("blogPost");
+                blogPost.Excerpt.Should().Be("excerpt1");
+            }
+
+            [Theory]
+            [InlineData(HttpStatusCode.NotFound)]
+            [InlineData(HttpStatusCode.InternalServerError)]
+            [InlineData(HttpStatusCode.BadRequest)]
+            public async Task GivenNonSuccessfulResponseHttpStatusCode_ShouldSucceed(HttpStatusCode httpStatusCode)
+            {
+                var mockHttp = new MockHttpMessageHandler();
+                mockHttp
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/doc/production/1234,5678")
+                    .Respond(httpStatusCode);
+
+                var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
+                {
+                    ProjectId = "123456",
+                    Dataset = "production",
+                    ApiVersion = "v2021-03-25"
+                });
+
+                var response = await client.GetDocuments(new[] { "1234", "5678" });
 
                 response.Should().NotBeNull();
             }
@@ -323,5 +398,10 @@ namespace Sanity.Client.Tests
     class Article : SanityDocument
     {
         public string Title { get; set; }
+    }
+
+    class BlogPost : SanityDocument
+    {
+        public string Excerpt { get; set; }
     }
 }

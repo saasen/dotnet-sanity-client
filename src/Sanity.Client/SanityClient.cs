@@ -11,8 +11,9 @@ namespace Sanity.Client
     {
         Task<SanityQueryResponse<T>> Query<T>(string query, CancellationToken cancellationToken);
         Task<HttpResponseMessage> Query(string query, CancellationToken cancellationToken);
-        Task<T> GetDocument<T>(string query, CancellationToken cancellationToken);
-        Task<HttpResponseMessage> GetDocument(string query, CancellationToken cancellationToken);
+        Task<T> GetDocument<T>(string documentId, CancellationToken cancellationToken);
+        Task<HttpResponseMessage> GetDocument(string documentId, CancellationToken cancellationToken);
+        Task<HttpResponseMessage> GetDocuments(string[] documentIds, CancellationToken cancellationToken);
     }
 
     interface ISanityClient : ISanityCdnClient
@@ -71,6 +72,12 @@ namespace Sanity.Client
         public Task<HttpResponseMessage> GetDocument(string documentId, CancellationToken cancellationToken = default)
         {
             return _httpClient.GetAsync($"data/doc/{_dataset}/{documentId}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        }
+
+        public Task<HttpResponseMessage> GetDocuments(string[] documentIds, CancellationToken cancellationToken = default)
+        {
+            var commaSeperatedDocumentIds = string.Join(",", documentIds);
+            return _httpClient.GetAsync($"data/doc/{_dataset}/{commaSeperatedDocumentIds}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         }
     }
 
