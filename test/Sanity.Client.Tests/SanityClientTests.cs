@@ -202,6 +202,113 @@ namespace Sanity.Client.Tests
                 response.Should().NotBeNull();
             }
         }
+
+        public class GenericGetDocument
+        {
+            [Fact]
+            public async Task HappyPath()
+            {
+                var mockHttp = new MockHttpMessageHandler();
+                mockHttp
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/doc/production/1234")
+                    .Respond("application/json", @"
+                    {
+                      ""documents"": [{""_id"": ""1234"", ""_type"" : ""article"", ""title"": ""title1""}]
+                    }");
+
+                var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
+                {
+                    ProjectId = "123456",
+                    Dataset = "production",
+                    ApiVersion = "v2021-03-25"
+                });
+
+                var result = await client.GetDocument<Article>("1234");
+                result.Should().NotBeNull();
+                result.Id.Should().Be("1234");
+                result.Type.Should().Be("article");
+                result.Title.Should().Be("title1");
+            }
+
+            [Theory]
+            [InlineData(HttpStatusCode.NotFound)]
+            [InlineData(HttpStatusCode.InternalServerError)]
+            [InlineData(HttpStatusCode.BadRequest)]
+            public async Task GivenNonSuccessfulResponseHttpStatusCode_ShouldThrow(HttpStatusCode httpStatusCode)
+            {
+                var mockHttp = new MockHttpMessageHandler();
+                mockHttp
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/query/production/1234")
+                    .Respond(httpStatusCode);
+
+                var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
+                {
+                    ProjectId = "123456",
+                    Dataset = "production",
+                    ApiVersion = "v2021-03-25"
+                });
+
+                await Assert.ThrowsAsync<HttpRequestException>(async () => await client.Query<Article[]>("*[_type == 'article']"));
+            }
+        }
+
+        public class HttpResponseGetDocument
+        {
+            [Fact]
+            public async Task HappyPath()
+            {
+                var mockHttp = new MockHttpMessageHandler();
+                mockHttp
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/doc/production/1234")
+                    .Respond("application/json", @"
+                    {
+                      ""documents"": [{""_id"": ""1234"", ""_type"" : ""article"", ""title"": ""title1""}]
+                    }");
+
+                var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
+                {
+                    ProjectId = "123456",
+                    Dataset = "production",
+                    ApiVersion = "v2021-03-25"
+                });
+
+                var response = await client.GetDocument("1234");
+                response.EnsureSuccessStatusCode();
+                var result = await JsonSerializer.DeserializeAsync<SanityDocResponse<Article>>(await response.Content.ReadAsStreamAsync(), new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                result.Should().NotBeNull();
+                result.Documents.Should().HaveCount(1);
+                result.Documents[0].Id.Should().Be("1234");
+                result.Documents[0].Type.Should().Be("article");
+                result.Documents[0].Title.Should().Be("title1");
+            }
+
+            [Theory]
+            [InlineData(HttpStatusCode.NotFound)]
+            [InlineData(HttpStatusCode.InternalServerError)]
+            [InlineData(HttpStatusCode.BadRequest)]
+            public async Task GivenNonSuccessfulResponseHttpStatusCode_ShouldSucceed(HttpStatusCode httpStatusCode)
+            {
+                var mockHttp = new MockHttpMessageHandler();
+                mockHttp
+                    .When($"https://123456.api.sanity.io/v2021-03-25/data/query/production?query={Uri.EscapeDataString("*[_type == 'article']")}")
+                    .Respond(httpStatusCode);
+
+                var client = new SanityClient(mockHttp.ToHttpClient(), new SanityClientOptions
+                {
+                    ProjectId = "123456",
+                    Dataset = "production",
+                    ApiVersion = "v2021-03-25"
+                });
+
+                var response = await client.Query("*[_type == 'article']");
+
+                response.Should().NotBeNull();
+            }
+        }
     }
 
     class SanityDocument

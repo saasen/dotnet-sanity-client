@@ -11,7 +11,8 @@ namespace Sanity.Client
     {
         Task<SanityResponse<T>> Query<T>(string query, CancellationToken cancellationToken);
         Task<HttpResponseMessage> Query(string query, CancellationToken cancellationToken);
-        //Task<T> GetDocument<T>(string query);
+        Task<T> GetDocument<T>(string query, CancellationToken cancellationToken);
+        Task<HttpResponseMessage> GetDocument(string query, CancellationToken cancellationToken);
     }
 
     interface ISanityClient : ISanityCdnClient
@@ -21,6 +22,7 @@ namespace Sanity.Client
     public class SanityClient : ISanityClient
     {
         private readonly HttpClient _httpClient;
+        private readonly string _dataset;
 
         // To accept a httpclient or not to, or just httphandler
         // It's nice to let the user pass httpclient so they can control how it is instantiated
@@ -32,6 +34,7 @@ namespace Sanity.Client
             Guard.AgainstNull(options.Dataset, nameof(options.Dataset));
             Guard.AgainstNull(options.ApiVersion, nameof(options.ApiVersion));
 
+            _dataset = options.Dataset;
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri($"https://{options.ProjectId}.api.sanity.io/{options.ApiVersion}/");
         }
@@ -51,6 +54,22 @@ namespace Sanity.Client
         public async Task<HttpResponseMessage> Query(string query, CancellationToken cancellationToken = default)
         {
             return await _httpClient.GetAsync($"data/query/production?query={Uri.EscapeDataString(query)}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+        public async Task<T> GetDocument<T>(string documentId, CancellationToken cancellationToken = default)
+        {
+            var response = await GetDocument(documentId, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var typedContent = await JsonSerializer.DeserializeAsync<SanityDocResponse<T>>(await response.Content.ReadAsStreamAsync(cancellationToken), new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }, cancellationToken: cancellationToken);
+            return typedContent.Documents[0];
+        }
+
+        public Task<HttpResponseMessage> GetDocument(string documentId, CancellationToken cancellationToken = default)
+        {
+            return _httpClient.GetAsync($"data/doc/{_dataset}/{documentId}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         }
     }
 
@@ -59,7 +78,6 @@ namespace Sanity.Client
         public string ProjectId { get; set; }
         public string Dataset { get; set; }
         public string ApiVersion { get; set; }
-        //public string Token { get; set; }
     }
 
     internal static class Guard
@@ -89,6 +107,11 @@ namespace Sanity.Client
         
         [JsonPropertyName("result")]
         public T Value { get; set; }
+    }
+
+    public class SanityDocResponse<T>
+    {
+        public T[] Documents { get; set; }
     }
 
     public class SanityQueryError
