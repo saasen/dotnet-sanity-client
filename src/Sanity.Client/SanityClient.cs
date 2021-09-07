@@ -9,7 +9,7 @@ namespace Sanity.Client
 {
     interface ISanityCdnClient
     {
-        Task<SanityResponse<T>> Query<T>(string query, CancellationToken cancellationToken);
+        Task<SanityQueryResponse<T>> Query<T>(string query, CancellationToken cancellationToken);
         Task<HttpResponseMessage> Query(string query, CancellationToken cancellationToken);
         Task<T> GetDocument<T>(string query, CancellationToken cancellationToken);
         Task<HttpResponseMessage> GetDocument(string query, CancellationToken cancellationToken);
@@ -39,12 +39,12 @@ namespace Sanity.Client
             _httpClient.BaseAddress = new Uri($"https://{options.ProjectId}.api.sanity.io/{options.ApiVersion}/");
         }
 
-        public async Task<SanityResponse<T>> Query<T>(string query, CancellationToken cancellationToken = default)
+        public async Task<SanityQueryResponse<T>> Query<T>(string query, CancellationToken cancellationToken = default)
         {
             var response = await Query(query, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var typedContent = await JsonSerializer.DeserializeAsync<SanityResponse<T>>(await response.Content.ReadAsStreamAsync(cancellationToken), new JsonSerializerOptions
+            var typedContent = await JsonSerializer.DeserializeAsync<SanityQueryResponse<T>>(await response.Content.ReadAsStreamAsync(cancellationToken), new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             }, cancellationToken: cancellationToken);
@@ -100,7 +100,7 @@ namespace Sanity.Client
         }
     }
 
-    public class SanityResponse<T>
+    public class SanityQueryResponse<T>
     {
         public SanityQueryError Error { get; set; }
         public int Ms { get; set; }

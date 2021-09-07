@@ -66,7 +66,7 @@ namespace Sanity.Client.Tests
         public class GenericQuery
         {
             [Fact]
-            public async Task GenericsQueryHappyPath()
+            public async Task HappyPath()
             {
                 var mockHttp = new MockHttpMessageHandler();
                 mockHttp
@@ -168,7 +168,7 @@ namespace Sanity.Client.Tests
                 });
 
                 var response = await client.Query("*[_type == 'article']");
-                var result = await JsonSerializer.DeserializeAsync<SanityResponse<Article[]>>(await response.Content.ReadAsStreamAsync(), new JsonSerializerOptions
+                var result = await JsonSerializer.DeserializeAsync<SanityQueryResponse<Article[]>>(await response.Content.ReadAsStreamAsync(), new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
