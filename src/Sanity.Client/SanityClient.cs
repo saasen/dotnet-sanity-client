@@ -57,9 +57,9 @@ namespace Sanity.Client
             return typedContent;
         }
         
-        public async Task<HttpResponseMessage> Query(string query, CancellationToken cancellationToken = default)
+        public Task<HttpResponseMessage> Query(string query, CancellationToken cancellationToken = default)
         {
-            return await _httpClient.GetAsync($"data/query/{_dataset}?query={Uri.EscapeDataString(query)}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            return _httpClient.GetAsync($"data/query/{_dataset}?query={Uri.EscapeDataString(query)}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         }
 
         public async Task<T> GetDocument<T>(string documentId, CancellationToken cancellationToken = default)
