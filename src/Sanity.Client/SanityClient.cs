@@ -38,6 +38,11 @@ namespace Sanity.Client
             _dataset = options.Dataset;
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri($"https://{options.ProjectId}.api.sanity.io/{options.ApiVersion}/");
+
+            if (!string.IsNullOrWhiteSpace(options.Token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.Token);
+            }
         }
 
         public async Task<SanityQueryResponse<T>> Query<T>(string query, CancellationToken cancellationToken = default)
@@ -86,6 +91,7 @@ namespace Sanity.Client
         public string ProjectId { get; set; }
         public string Dataset { get; set; }
         public string ApiVersion { get; set; }
+        public string Token { get; set; }
     }
 
     internal static class Guard
